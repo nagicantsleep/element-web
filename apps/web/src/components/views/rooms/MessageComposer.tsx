@@ -104,6 +104,10 @@ interface IState {
     composerContent: string;
     isComposerEmpty: boolean;
     haveRecording: boolean;
+    /** Product (Z/L): pending MSC4140 delivery time for the next send. */
+    scheduleAt?: number;
+    /** Product (Z/L): pending self-destruct TTL for the next send. */
+    selfDestructAfterMs?: number;
     recordingTimeLeftSeconds?: number;
     me?: RoomMember;
     isMenuOpen: boolean;
@@ -402,6 +406,13 @@ export class MessageComposer extends React.Component<IProps, IState> {
     };
 
     private sendMessage = async (): Promise<void> => {
+        // Product (Z/L): pending schedule / self-destruct options are applied
+        // to this send and then reset.
+        const scheduleAt = this.state.scheduleAt;
+        const selfDestructAfterMs = this.state.selfDestructAfterMs;
+        if (scheduleAt || selfDestructAfterMs) {
+            this.setState({ scheduleAt: undefined, selfDestructAfterMs: undefined });
+        }
         // snapshot need to be captured before the composer is cleared
         // otherwise the send message function will think there are no URLs in
         // message and will not attach URL bundles
@@ -414,7 +425,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
             return;
         }
 
-        void this.messageComposerInput.current?.sendMessage({ urlPreviewSnapshot });
+        void this.messageComposerInput.current?.sendMessage({ urlPreviewSnapshot, scheduleAt, selfDestructAfterMs });
 
         if (this.state.isWysiwygLabEnabled) {
             const { relation, replyToEvent } = this.props;
@@ -430,8 +441,18 @@ export class MessageComposer extends React.Component<IProps, IState> {
                 relation,
                 replyToEvent,
                 urlPreviewSnapshot,
+                scheduleAt,
+                selfDestructAfterMs,
             });
         }
+    };
+
+    private onScheduleAtChange = (scheduleAt?: number): void => {
+        this.setState({ scheduleAt });
+    };
+
+    private onSelfDestructChange = (selfDestructAfterMs?: number): void => {
+        this.setState({ selfDestructAfterMs });
     };
 
     private onChange = (model: EditorModel): void => {
@@ -613,6 +634,8 @@ export class MessageComposer extends React.Component<IProps, IState> {
                         disabled={this.state.haveRecording}
                         toggleStickerPickerOpen={this.toggleStickerPickerOpen}
                         urlPreviewVm={this.props.urlPreviewVm}
+                        composerScheduleAt={this.state.scheduleAt}
+                        composerSelfDestructAfterMs={this.state.selfDestructAfterMs}
                     />
                 );
             }
@@ -727,6 +750,10 @@ export class MessageComposer extends React.Component<IProps, IState> {
                                     isRichTextEnabled={this.state.isRichTextEnabled}
                                     onComposerModeClick={this.onRichTextToggle}
                                     toggleButtonMenu={this.toggleButtonMenu}
+                                    scheduleAt={this.state.scheduleAt}
+                                    selfDestructAfterMs={this.state.selfDestructAfterMs}
+                                    onScheduleAtChange={this.onScheduleAtChange}
+                                    onSelfDestructChange={this.onSelfDestructChange}
                                 />
                             )}
                             {showSendButton && (

@@ -11,6 +11,7 @@ import { KnownMembership } from "matrix-js-sdk/src/types";
 
 import { _t } from "../../../../../languageHandler";
 import RoomProfileSettings from "../../../room_settings/RoomProfileSettings";
+import { ChatWallpaperSettings } from "../../../rooms/ChatWallpaperSettings";
 import AccessibleButton, { type ButtonEvent } from "../../../elements/AccessibleButton";
 import dis from "../../../../../dispatcher/dispatcher";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
@@ -73,6 +74,10 @@ export default class GeneralRoomSettingsTab extends React.Component<IProps, ISta
             <SettingsTab data-testid="General">
                 <SettingsSection heading={_t("common|general")}>
                     <RoomProfileSettings roomId={room.roomId} />
+                </SettingsSection>
+
+                <SettingsSection heading="Chat wallpaper">
+                    <ChatWallpaperSettings room={room} />
                 </SettingsSection>
 
                 <SettingsSection heading={_t("room_settings|general|aliases_section")}>

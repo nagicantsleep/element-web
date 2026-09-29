@@ -217,3 +217,106 @@ Please see LICENSE files in the repository root for full details.
         min-height: 42px;
     }
 }
+
+/* Product (Z/L): per-room chat wallpaper layer, behind the message list. */
+.mx_RoomView_wallpaper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+}
+
+.mx_RoomView_timeline > .mx_RoomView_messagePanel,
+.mx_RoomView_timeline > .mx_ScrollPanel {
+    position: relative;
+    z-index: 1;
+}
+
+/* Product (Z/L): wallpaper picker swatches in room settings. */
+.mx_ChatWallpaper_colors {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.mx_ChatWallpaper_color {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+}
+
+/* Product (Z/L): inline translation + self-destruct badge. */
+.mx_TranslatedBody {
+    display: block;
+    margin-top: 4px;
+}
+
+.mx_TranslatedBody_result {
+    margin-top: 2px;
+    padding: 6px 8px;
+    border-left: 2px solid var(--cpd-color-bg-subtle-secondary, #ccc);
+    color: var(--cpd-color-text-secondary, #555);
+}
+
+.mx_TranslatedBody_error {
+    color: var(--cpd-color-text-critical-primary, #d33);
+    font-size: 12px;
+}
+
+.mx_SelfDestruct_badge {
+    display: inline-block;
+    margin-left: 6px;
+    opacity: 0.7;
+    font-size: 12px;
+}
+
+/* Product (Z/L): friends section above the room list. */
+.mx_FriendsSection {
+    padding: 8px 8px 4px;
+    border-bottom: 1px solid var(--cpd-color-bg-subtle-secondary, #e5e8ec);
+}
+
+.mx_FriendsSection_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--cpd-color-text-secondary, #666);
+        margin: 0;
+    }
+}
+
+.mx_FriendsSection_search {
+    width: 100%;
+    margin: 6px 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--cpd-color-border-input-variant, #ccc);
+}
+
+.mx_FriendsSection_row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+
+    .mx_FriendsSection_name {
+        flex: 1;
+        text-align: left;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--cpd-color-text-primary, #171717);
+        padding: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

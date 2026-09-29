@@ -76,6 +76,7 @@ import { type IMatrixClientCreds } from "../../utils/createMatrixClient";
 import { useMatrixClientContext } from "../../contexts/MatrixClientContext";
 import ScrollPanel from "./ScrollPanel";
 import TimelinePanel from "./TimelinePanel";
+import { WallpaperLayer } from "../../prod/WallpaperLayer";
 import ErrorBoundary from "../views/elements/ErrorBoundary";
 import RoomPreviewBar from "../views/rooms/RoomPreviewBar";
 import RoomPreviewCard from "../views/rooms/RoomPreviewCard";
@@ -2644,6 +2645,7 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
                         {auxPanel}
                         {pinnedMessageBanner}
                         <main className={timelineClasses} data-testid="timeline">
+                            <WallpaperLayer room={this.state.room} />
                             <FileDropTarget parent={this.roomView.current} />
                             {topUnreadMessagesBar}
                             {jumpToBottom}

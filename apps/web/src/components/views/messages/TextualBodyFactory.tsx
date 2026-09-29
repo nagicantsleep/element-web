@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, useContext, useEffect, useRef } from "react";
+import React, { Suspense, type JSX, useContext, useEffect, useRef } from "react";
 import { logger as rootLogger } from "matrix-js-sdk/src/logger";
 import { MsgType } from "matrix-js-sdk/src/matrix";
 import {
@@ -53,6 +53,8 @@ function getTextualBodyClassName(msgtype: MsgType | undefined): string {
 
     return "mx_MTextBody mx_EventTile_content";
 }
+
+const TranslatedBody = React.lazy(() => import("../../../prod/TranslatedBody"));
 
 export function TextualBodyFactory(props: Readonly<IBodyProps>): JSX.Element {
     const roomContext = useContext(RoomContext);
@@ -218,10 +220,33 @@ export function TextualBodyFactory(props: Readonly<IBodyProps>): JSX.Element {
         );
     }
 
+    // Product (Z/L): inline message translation below the body (E2EE-safe:
+    // only the decrypted plaintext is sent, on explicit user action).
+    const selfDestructTtl = (content as Record<string, unknown>)["m.self_destruct_after_ms"];
+    const bodyWithExtras = (
+        <>
+            <EventContentBodyView vm={eventContentBodyVm} as={willHaveWrapper ? "span" : "div"} />
+            {typeof selfDestructTtl === "number" && selfDestructTtl > 0 ? (
+                <span
+                    className="mx_SelfDestruct_badge"
+                    title="This message will self-destruct"
+                >
+                    ⏳
+                </span>
+            ) : null}
+            <Suspense fallback={null}>
+                <TranslatedBody
+                    eventId={props.mxEvent.getId() ?? ""}
+                    text={typeof content.body === "string" ? content.body : null}
+                />
+            </Suspense>
+        </>
+    );
+
     return (
         <TextualBodyView
             vm={textualBodyVm}
-            body={<EventContentBodyView vm={eventContentBodyVm} as={willHaveWrapper ? "span" : "div"} />}
+            body={bodyWithExtras}
             bodyRef={contentRef}
             urlPreviews={<UrlPreviewGroupView vm={urlPreviewVm} className="mx_TextualBody_urlPreviews" />}
             className={getTextualBodyClassName(content.msgtype as MsgType | undefined)}

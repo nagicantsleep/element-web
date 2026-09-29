@@ -43,6 +43,10 @@ export interface SendMessageParams {
     replyToEvent?: MatrixEvent;
     roomContext: Pick<IRoomState, "timelineRenderingType" | "room">;
     urlPreviewSnapshot: MessageComposerUrlPreviewSnapshot;
+    /** Product (Z/L): epoch ms for MSC4140 delayed delivery. */
+    scheduleAt?: number;
+    /** Product (Z/L): self-destruct TTL applied to the sent content. */
+    selfDestructAfterMs?: number;
 }
 
 export async function sendMessage(
@@ -50,6 +54,12 @@ export async function sendMessage(
     isHTML: boolean,
     { roomContext, mxClient, urlPreviewSnapshot, ...params }: SendMessageParams,
 ): Promise<ISendEventResponse | undefined> {
+    // Product (Z/L): scheduling and self-destruct are passed through
+    // SendMessageParams by MessageComposer.
+    const prodOpts = params as SendMessageParams & {
+        scheduleAt?: number;
+        selfDestructAfterMs?: number;
+    };
     const { relation, replyToEvent } = params;
     const { room } = roomContext;
     const roomId = room?.roomId;
@@ -132,11 +142,43 @@ export async function sendMessage(
 
     const threadId = relation?.event_id && relation?.rel_type === THREAD_RELATION_TYPE.name ? relation.event_id : null;
 
-    const prom = doMaybeLocalRoomAction(
-        roomId,
-        (actualRoomId: string) => mxClient.sendMessage(actualRoomId, threadId, content),
-        mxClient,
-    );
+    // Product (Z/L): scheduled send via MSC4140 delayed events, and/or a
+    // self-destruct marker in the content with a delayed server-side redaction.
+    const { scheduleAt, selfDestructAfterMs } = prodOpts;
+    if (selfDestructAfterMs && selfDestructAfterMs > 0 && content) {
+        (content as unknown as Record<string, unknown>)["m.self_destruct_after_ms"] = selfDestructAfterMs;
+    }
+
+    let prom: Promise<ISendEventResponse | undefined>;
+    if (scheduleAt && scheduleAt > Date.now()) {
+        prom = mxClient
+            ._unstable_sendDelayedEvent(
+                roomId,
+                { delay: Math.max(1, scheduleAt - Date.now()) },
+                threadId,
+                "m.room.message" as never,
+                content as never,
+            )
+            .then((response) => {
+                void import("../../../../../prod/Scheduling").then(({ rememberScheduledSend }) =>
+                    rememberScheduledSend({
+                        delayId: response.delay_id,
+                        roomId,
+                        sendAt: scheduleAt,
+                        content: content as unknown as Record<string, unknown>,
+                        eventType: "m.room.message",
+                        selfDestructAfterMs,
+                    }),
+                );
+                return undefined;
+            });
+    } else {
+        prom = doMaybeLocalRoomAction(
+            roomId,
+            (actualRoomId: string) => mxClient.sendMessage(actualRoomId, threadId, content),
+            mxClient,
+        );
+    }
 
     if (replyToEvent) {
         // Clear reply_to_event as we put the message into the queue
@@ -161,7 +203,7 @@ export async function sendMessage(
     });
     if (SettingsStore.getValue("Performance.addSendMessageTimingMetadata")) {
         void prom.then((resp) => {
-            sendRoundTripMetric(mxClient, roomId, resp.event_id);
+            if (resp) sendRoundTripMetric(mxClient, roomId, resp.event_id);
         });
     }
 

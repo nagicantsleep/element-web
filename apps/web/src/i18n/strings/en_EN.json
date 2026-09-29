@@ -18,6 +18,7 @@
     "action": {
         "accept": "Accept",
         "add": "Add",
+        "hide": "Hide",
         "add_existing_room": "Add existing room",
         "apply": "Apply",
         "approve": "Approve",
@@ -640,7 +641,8 @@
         "send_button_voice_message": "Send voice message",
         "send_voice_message": "Send voice message",
         "stop_voice_message": "Stop recording",
-        "voice_message_button": "Voice Message"
+        "voice_message_button": "Voice Message",
+        "send_later": "Send later / Auto-destruct"
     },
     "console_dev_note": "If you know what you're doing, Element is open-source, be sure to check out our GitHub (https://github.com/vector-im/element-web/) and contribute!",
     "console_scam_warning": "If someone told you to copy/paste something here, there is a high likelihood you're being scammed!",
@@ -4125,5 +4127,13 @@
             "userInputs": "There should not be any personal or page related data.",
             "wordByItself": "A word by itself is easy to guess"
         }
+    },
+    "translation": {
+        "show_original": "Show original",
+        "translate": "Translate",
+        "failed": "Translation failed",
+        "friends": "Friends",
+        "add_friend": "Add by user ID, e-mail or phone",
+        "accept": "Accept"
     }
 }

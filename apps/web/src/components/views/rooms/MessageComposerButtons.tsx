@@ -42,6 +42,7 @@ import { EmojiButton } from "./EmojiButton";
 import { filterBoolean } from "../../../utils/arrays";
 import { useSettingValue } from "../../../hooks/useSettings";
 import AccessibleButton, { type ButtonEvent } from "../elements/AccessibleButton";
+import ScheduleButton from "./ScheduleButton";
 import { useScopedRoomContext } from "../../../contexts/ScopedRoomContext.tsx";
 import { useRoomUploadViewModel } from "../../../viewmodels/room/RoomUploadViewModel.tsx";
 
@@ -60,6 +61,11 @@ interface IProps {
     toggleButtonMenu: () => void;
     isRichTextEnabled: boolean;
     onComposerModeClick: () => void;
+    /** Product (Z/L): scheduling + self-destruct wiring. */
+    scheduleAt?: number;
+    selfDestructAfterMs?: number;
+    onScheduleAtChange: (scheduleAt?: number) => void;
+    onSelfDestructChange: (selfDestructAfterMs?: number) => void;
 }
 
 const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
@@ -102,6 +108,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
             voiceRecordingButton(props, narrow),
             props.showPollsButton ? pollButton(room, props.relation) : null,
             showLocationButton(props, room, matrixClient),
+            scheduleButton(props),
         ];
     } else {
         mainButtons = [
@@ -121,6 +128,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
             voiceRecordingButton(props, narrow),
             props.showPollsButton ? pollButton(room, props.relation) : null,
             showLocationButton(props, room, matrixClient),
+            scheduleButton(props),
         ];
     }
 
@@ -255,6 +263,19 @@ class PollButton extends React.PureComponent<IPollButtonProps> {
             </CollapsibleButton>
         );
     }
+}
+
+function scheduleButton(props: IProps): ReactElement | null {
+    return (
+        <ScheduleButton
+            key="schedule"
+            menuPosition={props.menuPosition}
+            scheduleAt={props.scheduleAt}
+            selfDestructAfterMs={props.selfDestructAfterMs}
+            onScheduleAtChange={props.onScheduleAtChange}
+            onSelfDestructChange={props.onSelfDestructChange}
+        />
+    );
 }
 
 function showLocationButton(props: IProps, room: Room, matrixClient: MatrixClient): ReactElement | null {

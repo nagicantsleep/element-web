@@ -132,6 +132,9 @@ export function isQuickReaction(model: EditorModel): boolean {
 }
 
 interface ISendMessageComposerProps extends MatrixClientProps {
+    /** Product (Z/L): pending schedule / self-destruct options held by MessageComposer. */
+    composerScheduleAt?: number;
+    composerSelfDestructAfterMs?: number;
     room: Room;
     uploadVm: RoomUploadViewModel;
     placeholder?: string;
@@ -145,6 +148,10 @@ interface ISendMessageComposerProps extends MatrixClientProps {
 
 interface ISendMessageActionProps {
     urlPreviewSnapshot: MessageComposerUrlPreviewSnapshot;
+    /** Product (Z/L): MSC4140 delayed delivery epoch ms. */
+    scheduleAt?: number;
+    /** Product (Z/L): self-destruct TTL marker on the content. */
+    selfDestructAfterMs?: number;
 }
 
 export class SendMessageComposer extends React.Component<ISendMessageComposerProps> {
@@ -205,7 +212,13 @@ export class SendMessageComposer extends React.Component<ISendMessageComposerPro
         switch (action) {
             case KeyBindingAction.SendMessage: {
                 const urlPreviewSnapshot = this.props.urlPreviewVm.getSnapshot();
-                void this.sendMessage({ urlPreviewSnapshot });
+                // Product (Z/L): pass pending schedule / self-destruct options
+                // that live on MessageComposer state.
+                void this.sendMessage({
+                    urlPreviewSnapshot,
+                    scheduleAt: this.props.composerScheduleAt,
+                    selfDestructAfterMs: this.props.composerSelfDestructAfterMs,
+                });
                 event.preventDefault();
                 break;
             }
@@ -341,7 +354,7 @@ export class SendMessageComposer extends React.Component<ISendMessageComposerPro
     /*
      * The URL preview VM snapshot before the composer is cleared
      */
-    public async sendMessage({ urlPreviewSnapshot }: ISendMessageActionProps): Promise<void> {
+    public async sendMessage({ urlPreviewSnapshot, scheduleAt, selfDestructAfterMs }: ISendMessageActionProps): Promise<void> {
         const model = this.model;
 
         if (model.isEmpty) {
@@ -464,11 +477,40 @@ export class SendMessageComposer extends React.Component<ISendMessageComposerPro
             const threadId =
                 this.props.relation?.rel_type === THREAD_RELATION_TYPE.name ? this.props.relation.event_id : null;
 
-            const prom = doMaybeLocalRoomAction(
-                roomId,
-                (actualRoomId: string) => this.props.mxClient.sendMessage(actualRoomId, threadId ?? null, content!),
-                this.props.mxClient,
-            );
+            // Product (Z/L): delayed delivery + self-destruct marker.
+            if (selfDestructAfterMs && selfDestructAfterMs > 0) {
+                (content as unknown as Record<string, unknown>)["m.self_destruct_after_ms"] = selfDestructAfterMs;
+            }
+            let prom: Promise<unknown>;
+            if (scheduleAt && scheduleAt > Date.now()) {
+                prom = this.props.mxClient
+                    ._unstable_sendDelayedEvent(
+                        roomId,
+                        { delay: Math.max(1, scheduleAt - Date.now()) },
+                        threadId ?? null,
+                        "m.room.message" as never,
+                        content! as never,
+                    )
+                    .then((response) => {
+                        void import("../../../prod/Scheduling").then(({ rememberScheduledSend }) =>
+                            rememberScheduledSend({
+                                delayId: response.delay_id,
+                                roomId,
+                                sendAt: scheduleAt,
+                                content: content! as unknown as Record<string, unknown>,
+                                eventType: "m.room.message",
+                                selfDestructAfterMs,
+                            }),
+                        );
+                        return response;
+                    });
+            } else {
+                prom = doMaybeLocalRoomAction(
+                    roomId,
+                    (actualRoomId: string) => this.props.mxClient.sendMessage(actualRoomId, threadId ?? null, content!),
+                    this.props.mxClient,
+                );
+            }
             if (replyToEvent) {
                 // Clear reply_to_event as we put the message into the queue
                 // if the send fails, retry will handle resending.
@@ -491,7 +533,7 @@ export class SendMessageComposer extends React.Component<ISendMessageComposerPro
             });
             if (SettingsStore.getValue("Performance.addSendMessageTimingMetadata")) {
                 void prom.then((resp) => {
-                    sendRoundTripMetric(this.props.mxClient, roomId, resp.event_id);
+                    if (resp) sendRoundTripMetric(this.props.mxClient, roomId, (resp as { event_id: string }).event_id);
                 });
             }
         } else {

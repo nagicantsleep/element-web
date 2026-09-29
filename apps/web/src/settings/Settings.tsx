@@ -291,6 +291,8 @@ export interface Settings {
     "webrtc_audio_echoCancellation": IBaseSetting<boolean>;
     "webrtc_audio_noiseSuppression": IBaseSetting<boolean>;
     "language": IBaseSetting<string>;
+    "prodTranslationUrl": IBaseSetting<string>;
+    "prodTranslationTarget": IBaseSetting<string>;
     "breadcrumb_rooms": IBaseSetting<string[]>;
     "recent_emoji": IBaseSetting<RecentEmojiData>;
     "showMediaEventIds": IBaseSetting<{ [eventId: string]: boolean }>;
@@ -1007,6 +1009,18 @@ export const SETTINGS: Settings = {
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG,
         default: "en",
         // For privacy
+        shouldExportToRageshake: false,
+    },
+    // Product (Z/L): message translation service + target language.
+    "prodTranslationUrl": {
+        supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG,
+        default: "",
+        // For privacy: the URL is device-local, never exported.
+        shouldExportToRageshake: false,
+    },
+    "prodTranslationTarget": {
+        supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS_WITH_CONFIG,
+        default: "",
         shouldExportToRageshake: false,
     },
     "breadcrumb_rooms": {
