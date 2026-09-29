@@ -22,6 +22,7 @@ import {
     type FriendEntry,
 } from "../../../prod/Friends";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
+import MyQrCodeDialog from "../dialogs/MyQrCodeDialog";
 
 /**
  * Friends section above the room list (Z/L social layer, ADR 0015).
@@ -30,6 +31,7 @@ import { MatrixClientPeg } from "../../../MatrixClientPeg";
 export function FriendsSection(): React.JSX.Element {
     const client = MatrixClientPeg.safeGet() as MatrixClient;
     const [collapsed, setCollapsed] = useState(false);
+    const [showQr, setShowQr] = useState(false);
     const [friends, setFriends] = useState<FriendEntry[]>([]);
     const [incoming, setIncoming] = useState<string[]>([]);
     const [searchText, setSearchText] = useState("");
@@ -94,6 +96,13 @@ export function FriendsSection(): React.JSX.Element {
                 <div>
                     <AccessibleButton
                         kind="link_inline"
+                        onClick={() => setShowQr(true)}
+                        title={_t("translation|my_qr")}
+                    >
+                        QR
+                    </AccessibleButton>
+                    <AccessibleButton
+                        kind="link_inline"
                         onClick={() => {
                             if (!searchText && !results.length) {
                                 // Seed the user-directory search box with an empty query.
@@ -116,6 +125,10 @@ export function FriendsSection(): React.JSX.Element {
                     if (e.key === "Enter") void onSearch();
                 }}
             />
+
+            {showQr && (
+                <MyQrCodeDialog userId={client.getSafeUserId()} onFinished={() => setShowQr(false)} />
+            )}
 
             {results.map((r) => (
                 <div key={r.userId} className="mx_FriendsSection_row">

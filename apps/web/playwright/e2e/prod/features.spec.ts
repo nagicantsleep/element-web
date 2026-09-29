@@ -102,13 +102,28 @@ test.describe("Product features", () => {
         await expect(page.locator(".mx_ChatWallpaper_color").first()).toBeVisible();
     });
 
+    test("server-side search finds a message in another room", async ({ page, room }) => {
+        // Send a distinctive message in the fixture room, then search from
+        // the spotlight: the server-side /search spans every joined room.
+        const marker = `needle-${Date.now()}`;
+        await page.getByRole("textbox", { name: /Send an (unencrypted|encrypted) message/ }).fill(marker);
+        await page.getByRole("button", { name: "Send message" }).click();
+        await expect(page.getByText(marker)).toBeVisible();
+
+        await page.getByRole("button", { name: "Search" }).click();
+        await page.getByRole("textbox", { name: "Search" }).fill(marker);
+        // Wait for the server result to land in the dialog.
+        await expect(page.getByText(marker).first()).toBeVisible({ timeout: 10_000 });
+    });
+
     test("friends section appears above the room list and accepts search", async ({ page, bot }) => {
         const section = page.locator(".mx_FriendsSection");
         await expect(section).toBeVisible();
 
         // The server-side user directory excludes the caller, so search for the bot.
-        const localpart = bot.credentials!.userId.split(":")[0].replace("@", "");
-        await section.locator("input").fill(localpart);
+        // Paste the full mxid (as a scanned personal QR code would) — the
+        // server-side directory resolves it with search_all_users.
+        await section.locator("input").fill(bot.credentials!.userId);
         await section.locator("input").press("Enter");
         // The result row shows the bot's display name ("B Buddy") with an add-friend button.
         await expect(section.locator(".mx_FriendsSection_row").first()).toBeVisible({ timeout: 10_000 });

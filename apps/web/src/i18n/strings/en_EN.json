@@ -4133,6 +4133,7 @@
         "translate": "Translate",
         "failed": "Translation failed",
         "friends": "Friends",
+        "my_qr": "My QR code",
         "add_friend": "Add by user ID, e-mail or phone",
         "accept": "Accept"
     }
