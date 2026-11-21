@@ -63,14 +63,14 @@ export function ScheduleButton(props: ScheduleButtonProps): React.JSX.Element {
                     {SEND_LATER_OPTIONS.map((option) => (
                         <IconizedContextMenuOption
                             key={`send-${option.label}`}
-                            label={`Send later — ${option.label}`}
+                            label={_t("send_later|send_at", { when: _t(`send_later|${option.label}`) })}
                             onClick={() => pickSendLater(option.value)}
                         />
                     ))}
                     {SELF_DESTRUCT_OPTIONS.map((option) => (
                         <IconizedContextMenuOption
                             key={`destruct-${option.label}`}
-                            label={`Auto-destruct — ${option.label}`}
+                            label={_t("send_later|destruct_at", { when: _t(`send_later|${option.label}`) })}
                             onClick={() => pickDestruct(option.value)}
                         />
                     ))}

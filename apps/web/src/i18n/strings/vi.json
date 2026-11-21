@@ -542,7 +542,8 @@
         "send_button_voice_message": "Gửi tin nhắn thoại",
         "send_voice_message": "Gửi tin nhắn thoại",
         "stop_voice_message": "Dừng ghi",
-        "voice_message_button": "Tin nhắn thoại"
+        "voice_message_button": "Tin nhắn thoại",
+        "send_later": "Gửi sau / Tự hủy"
     },
     "console_wait": "Khoan!",
     "create_room": {
@@ -3192,5 +3193,23 @@
             "topTen": "Đây là 1 trong 10 mật khẩu phổ biến",
             "wordByItself": "Một từ có nghĩa là rất dễ đoán"
         }
+    },
+    "translation": {
+        "friends": "Bạn bè",
+        "my_qr": "Mã QR của tôi",
+        "add_friend": "Thêm theo ID, email hoặc số điện thoại",
+        "accept": "Chấp nhận"
+    },
+    "send_later": {
+        "send_at": "Gửi sau — %(when)s",
+        "send_at_in_5_minutes": "Sau 5 phút",
+        "send_at_in_30_minutes": "Sau 30 phút",
+        "send_at_in_1_hour": "Sau 1 giờ",
+        "send_at_tomorrow_morning": "Sáng mai",
+        "destruct_at": "Tự hủy — %(when)s",
+        "destruct_off": "Tắt",
+        "destruct_in_1_hour": "Sau 1 giờ",
+        "destruct_in_24_hours": "Sau 24 giờ",
+        "destruct_in_1_week": "Sau 1 tuần"
     }
 }

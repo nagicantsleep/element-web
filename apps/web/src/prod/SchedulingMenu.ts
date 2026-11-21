@@ -17,19 +17,19 @@ import { logger } from "matrix-js-sdk/src/logger";
  */
 export const SELF_DESTRUCT_KEY = "m.self_destruct_after_ms";
 
-export const SELF_DESTRUCT_OPTIONS: { label: string; value: number }[] = [
-    { label: "Off", value: 0 },
-    { label: "1 hour", value: 3_600_000 },
-    { label: "24 hours", value: 86_400_000 },
-    { label: "1 week", value: 604_800_000 },
-];
+export const SELF_DESTRUCT_OPTIONS = [
+    { label: "destruct_off", value: 0 },
+    { label: "destruct_in_1_hour", value: 3_600_000 },
+    { label: "destruct_in_24_hours", value: 86_400_000 },
+    { label: "destruct_in_1_week", value: 604_800_000 },
+] as const;
 
-export const SEND_LATER_OPTIONS: { label: string; value: number }[] = [
-    { label: "In 5 minutes", value: 5 * 60_000 },
-    { label: "In 30 minutes", value: 30 * 60_000 },
-    { label: "In 1 hour", value: 60 * 60_000 },
-    { label: "Tomorrow morning", value: -1 }, // special-cased: 9am next day
-];
+export const SEND_LATER_OPTIONS = [
+    { label: "send_at_in_5_minutes", value: 5 * 60_000 },
+    { label: "send_at_in_30_minutes", value: 30 * 60_000 },
+    { label: "send_at_in_1_hour", value: 60 * 60_000 },
+    { label: "send_at_tomorrow_morning", value: -1 }, // special-cased: 9am next day
+] as const;
 
 export function sendAtFor(optionValue: number): number {
     if (optionValue === -1) {
