@@ -546,7 +546,8 @@
         "send_button_voice_message": "音声メッセージを送信",
         "send_voice_message": "音声メッセージを送信",
         "stop_voice_message": "録音を停止",
-        "voice_message_button": "音声メッセージ"
+        "voice_message_button": "音声メッセージ",
+        "send_later": "後で送信 / 自動削除"
     },
     "console_dev_note": "もし開発者の方であれば、Elementはオープンソースですので、ぜひ私たちのGitHub（https://github.com/vector-im/element-web/）をご覧いただき、開発にご参加ください！",
     "console_scam_warning": "ここでコピーペーストを行うように伝えられた場合は、あなたが詐欺の対象となっている可能性が非常に高いです！",
@@ -3166,5 +3167,23 @@
             "topTen": "これがよく使われるパスワードの上位10個です",
             "wordByItself": "単語1つだけだと簡単に推測されます"
         }
+    },
+    "translation": {
+        "friends": "フレンド",
+        "my_qr": "マイQRコード",
+        "add_friend": "ユーザーID・メールアドレス・電話番号で追加",
+        "accept": "承認"
+    },
+    "send_later": {
+        "send_at": "後で送信 — %(when)s",
+        "send_at_in_5_minutes": "5分後",
+        "send_at_in_30_minutes": "30分後",
+        "send_at_in_1_hour": "1時間後",
+        "send_at_tomorrow_morning": "明日の朝",
+        "destruct_at": "自動削除 — %(when)s",
+        "destruct_off": "オフ",
+        "destruct_in_1_hour": "1時間",
+        "destruct_in_24_hours": "24時間",
+        "destruct_in_1_week": "1週間"
     }
 }
