@@ -45,6 +45,8 @@ import {
     renderMBody,
 } from "./MBodyFactory";
 import { TextualBodyFactory } from "./TextualBodyFactory";
+import { _t } from "../../../languageHandler";
+import { FRIEND_REQUEST_MSGTYPE } from "../../../prod/Friends";
 
 // onMessageAllowed is handled internally
 interface IProps extends Omit<IBodyProps, "onMessageAllowed" | "mediaEventHelper"> {
@@ -98,7 +100,10 @@ function MjolnirBodyWrappedView({ mxEvent, onMessageAllowed, ref }: IBodyProps):
 }
 
 function UnknownBody({ mxEvent, ref }: IBodyProps): JSX.Element {
-    return <UnknownBodyView text={mxEvent.getContent().body} ref={ref} className="mx_UnknownBody" />;
+    const content = mxEvent.getContent();
+    // Friend requests carry an English body for interop; render it in the viewer's language.
+    const text = content.msgtype === FRIEND_REQUEST_MSGTYPE ? _t("translation|friend_request") : content.body;
+    return <UnknownBodyView text={text} ref={ref} className="mx_UnknownBody" />;
 }
 
 export default class MessageEvent extends React.Component<IProps> implements IMediaBody, IOperableEventTile {

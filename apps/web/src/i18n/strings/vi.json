@@ -3198,7 +3198,8 @@
         "friends": "Bạn bè",
         "my_qr": "Mã QR của tôi",
         "add_friend": "Thêm theo ID, email hoặc số điện thoại",
-        "accept": "Chấp nhận"
+        "accept": "Chấp nhận",
+        "friend_request": "👋 Lời mời kết bạn"
     },
     "send_later": {
         "send_at": "Gửi sau — %(when)s",

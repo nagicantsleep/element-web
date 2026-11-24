@@ -4135,7 +4135,8 @@
         "friends": "Friends",
         "my_qr": "My QR code",
         "add_friend": "Add by user ID, e-mail or phone",
-        "accept": "Accept"
+        "accept": "Accept",
+        "friend_request": "👋 Friend request"
     },
     "send_later": {
         "send_at": "Send later — %(when)s",

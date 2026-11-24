@@ -75,5 +75,15 @@ describe("MessageEventPreview", () => {
             });
             expect(preview.getTextFor(event)).toBe(`${userId}: test new content body`);
         });
+
+        it("renders friend requests with the translated label, not the sent body", () => {
+            const event = mkEvent({
+                event: true,
+                content: { msgtype: "m.friend_request", body: "anything the sender wrote" },
+                user: userId,
+                type: "m.room.message",
+            });
+            expect(preview.getTextFor(event)).toBe(`${userId}: 👋 Friend request`);
+        });
     });
 });

@@ -3172,7 +3172,8 @@
         "friends": "フレンド",
         "my_qr": "マイQRコード",
         "add_friend": "ユーザーID・メールアドレス・電話番号で追加",
-        "accept": "承認"
+        "accept": "承認",
+        "friend_request": "👋 フレンド申請"
     },
     "send_later": {
         "send_at": "後で送信 — %(when)s",
