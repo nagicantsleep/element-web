@@ -14,7 +14,7 @@ import { _t, sanitizeForTranslation } from "../../../languageHandler";
 import { getSenderName, isSelf, shouldPrefixMessagesIn } from "./utils";
 import { getHtmlText } from "../../../HtmlUtils";
 import { stripHTMLReply, stripPlainReply } from "../../../utils/Reply";
-import { FRIEND_REQUEST_MSGTYPE } from "../../../prod/Friends";
+import { isFriendRequestContent } from "../../../prod/Friends";
 
 export class MessageEventPreview implements Preview {
     public getTextFor(event: MatrixEvent, tagId?: TagID, isThread?: boolean): string | null {
@@ -57,7 +57,7 @@ export class MessageEventPreview implements Preview {
         body = sanitizeForTranslation(body);
 
         // The sent body stays English for interop; show the viewer's language instead.
-        if (msgtype === FRIEND_REQUEST_MSGTYPE) body = _t("translation|friend_request");
+        if (isFriendRequestContent(eventContent)) body = _t("translation|friend_request");
 
         if (msgtype === MsgType.Emote) {
             return _t("event_preview|m.emote", { senderName: getSenderName(event), emote: body });

@@ -85,5 +85,20 @@ describe("MessageEventPreview", () => {
             });
             expect(preview.getTextFor(event)).toBe(`${userId}: 👋 Friend request`);
         });
+
+        it("renders wire v2 friend requests (format marker) with the translated label", () => {
+            const event = mkEvent({
+                event: true,
+                content: {
+                    msgtype: "m.text",
+                    body: "👋 Friend request",
+                    format: "io.nagi.friend_request",
+                    formatted_body: "👋 Friend request",
+                },
+                user: userId,
+                type: "m.room.message",
+            });
+            expect(preview.getTextFor(event)).toBe(`${userId}: 👋 Friend request`);
+        });
     });
 });

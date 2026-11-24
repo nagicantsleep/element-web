@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { type MatrixClient, type MatrixEvent } from "matrix-js-sdk/src/matrix";
+import { type MatrixClient, type MatrixEvent, MsgType } from "matrix-js-sdk/src/matrix";
 import { logger } from "matrix-js-sdk/src/logger";
 
 /**
@@ -23,8 +23,15 @@ import { logger } from "matrix-js-sdk/src/logger";
 
 export const FRIENDS_EVENT_TYPE = "m.friend_list";
 export const FRIEND_REQUESTS_EVENT_TYPE = "m.friend_requests";
-/** Content marker of a friend-request message inside a DM. */
+/** Legacy content marker (wire v1, ADR 0016): still detected where the SDK delivers it. */
 export const FRIEND_REQUEST_MSGTYPE = "m.friend_request";
+/** Wire v2 marker: lives in the `format` field, which matrix-rust-sdk passes through (ADR 0016). */
+export const FRIEND_REQUEST_FORMAT = "io.nagi.friend_request";
+
+/** A message is a friend request iff msgtype is the legacy marker OR format is the v2 marker. */
+export function isFriendRequestContent(content: { msgtype?: string; format?: string }): boolean {
+    return content.msgtype === FRIEND_REQUEST_MSGTYPE || content.format === FRIEND_REQUEST_FORMAT;
+}
 
 export interface FriendEntry {
     user_id: string;
@@ -106,7 +113,15 @@ export async function sendFriendRequest(
 ): Promise<void> {
     const roomId = await ensureDmRoom(client, targetUserId);
     await (client.sendEvent as unknown as (roomId: string, type: string, content: Record<string, unknown>) => Promise<unknown>)(
-        roomId, "m.room.message", { msgtype: FRIEND_REQUEST_MSGTYPE, body: "👋 Friend request" },
+        roomId,
+        "m.room.message",
+        {
+            // Wire v2 (ADR 0016): marker in `format`; m.text so .m.rule.suppress_notices does not silence it.
+            msgtype: MsgType.Text,
+            body: "👋 Friend request",
+            format: FRIEND_REQUEST_FORMAT,
+            formatted_body: "👋 Friend request",
+        },
     );
     await rememberRequest(client, {
         user_id: targetUserId,
@@ -142,8 +157,8 @@ async function ensureDmRoom(client: MatrixClient, userId: string): Promise<strin
  */
 export function observeFriendRequest(client: MatrixClient, event: MatrixEvent): void {
     try {
-        const content = event.getContent() as { msgtype?: string; body?: string };
-        if (content.msgtype !== FRIEND_REQUEST_MSGTYPE) return;
+        const content = event.getContent() as { msgtype?: string; format?: string; body?: string };
+        if (!isFriendRequestContent(content)) return;
         const sender = event.getSender();
         if (!sender || sender === client.getSafeUserId()) return;
         const requests = readEvent(client, FRIEND_REQUESTS_EVENT_TYPE);

@@ -5,11 +5,14 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { MatrixEvent } from "matrix-js-sdk/src/matrix";
 
 import {
     addFriend,
     getFriendRequests,
     getFriends,
+    isFriendRequestContent,
+    observeFriendRequest,
     removeFriend,
     sendFriendRequest,
 } from "./Friends";
@@ -68,14 +71,43 @@ describe("prod/Friends", () => {
     it("sendFriendRequest sends a DM marker message and records an outgoing request", async () => {
         await sendFriendRequest(client, "@carol:chat.example", "Carol");
 
+        // Wire v2 (ADR 0016): marker in `format`, msgtype m.text so notifications are not suppressed.
         expect(client.sendEvent).toHaveBeenCalledWith(
             "!newdm:chat.example",
             "m.room.message",
-            expect.objectContaining({ msgtype: "m.friend_request" }),
+            {
+                msgtype: "m.text",
+                body: "👋 Friend request",
+                format: "io.nagi.friend_request",
+                formatted_body: "👋 Friend request",
+            },
         );
         const { outgoing } = getFriendRequests(client);
         expect(outgoing).toHaveLength(1);
         expect(outgoing[0]).toMatchObject({ user_id: "@carol:chat.example", direction: "out" });
+    });
+
+    it("isFriendRequestContent detects legacy msgtype and v2 format markers", () => {
+        expect(isFriendRequestContent({ msgtype: "m.friend_request" })).toBe(true);
+        expect(isFriendRequestContent({ format: "io.nagi.friend_request" })).toBe(true);
+        expect(isFriendRequestContent({ msgtype: "m.text" })).toBe(false);
+        expect(isFriendRequestContent({ msgtype: "m.text", format: "org.matrix.custom.html" })).toBe(false);
+        expect(isFriendRequestContent({})).toBe(false);
+    });
+
+    it("observeFriendRequest records incoming v2 requests and ignores own messages", async () => {
+        const event = {
+            getContent: () => ({ msgtype: "m.text", body: "👋 Friend request", format: "io.nagi.friend_request" }),
+            getSender: () => "@carol:chat.example",
+            getTs: () => 12345,
+        } as unknown as MatrixEvent;
+
+        observeFriendRequest(client, event);
+        await vi.waitFor(() => {
+            const { incoming } = getFriendRequests(client);
+            expect(incoming).toHaveLength(1);
+            expect(incoming[0]).toMatchObject({ user_id: "@carol:chat.example", direction: "in", created_at: 12345 });
+        });
     });
 
     it("sendFriendRequest reuses an existing DM room from the m.direct map", async () => {
